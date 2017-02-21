@@ -64,8 +64,7 @@ class pyfftrim:
             self.files.append(name)
             return True
 
-        else:
-            return False
+        return False
 
     @staticmethod
     def _get_duration(path):
@@ -111,13 +110,21 @@ class pyfftrim:
         """
         error_flag = False
 
+        # Correctly transform the user's start parameter into a format FFMPEG can accept.
+        start_time = self._format_secs(start)
+
         for entry in self.files:
             print('Processing %s' % entry)
 
-            # Correctly transform the user's desired parameters into a format FFMPEG can accept.
-            start_time = self._format_secs(start)
+            # Get the duration of the file and calculate the new duration based on the user's parameters.
             duration = self._get_duration(entry)
-            end_time = self._format_secs(duration - start - end)
+            new_duration = duration - start - end
+
+            # Ensure that we don't try to cut more than the actual length of the stream.
+            if new_duration <= 0:
+                return False
+
+            end_time = self._format_secs(new_duration)
 
             status = self._trim_file(entry, start_time, end_time)
             if status == 0:
