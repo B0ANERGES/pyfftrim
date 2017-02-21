@@ -151,6 +151,8 @@ class pyfftrim:
 
         :param start: The number of seconds to trim from the beginning of the stream.
         :param end: The number of seconds to trim from the end of the stream.
+        :param dryrun: Performs a dryrun only. That is, we do not actually trim the file.
+        :param delete_original: Deletes the original file after successfully trimming it.
         :return: True on success or False if a failure occurred.
         """
         error_flag = False
@@ -230,7 +232,7 @@ if __name__ == '__main__':
                         help='USE WITH CAUTION. Deletes the original file after successfully trimming it.')
     args = parser.parse_args()
 
-    p = pyfftrim(name=args.input, depth=args.depth, postfix=args.postfix)
+    p = pyfftrim(name=args.input, depth=args.depth, postfix=args.postfix, whitelist=args.whitelist)
     p.trim(args.start, args.end, dryrun=args.dryrun, delete_original=args.delete_original)
 
     sys.exit(0)
