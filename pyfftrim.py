@@ -224,23 +224,16 @@ if __name__ == '__main__':
                         help='If a directory is specified, this allows recursing through sub-directories')
     parser.add_argument('--dryrun', action='store_true',
                         help='Runs the script without actually trimming any of the videos')
-    parser.add_argument('--whitelist', nargs='?', default=default_whitelist,
+    parser.add_argument('--whitelist', nargs='+', default=default_whitelist,
                         help='Override the whitelist of acceptable files. This is only used when adding from a '
                              'directory. In other words, it may be overridden on a case-by-case basis by manually '
                              'adding a file. For example, to whitelist .ts and .mpeg files the parameter should be '
-                             '".ts, .mpeg".')
+                             'pyfftrim --whitelist .ts, .mpeg')
     parser.add_argument('--delete-original', action='store_true',
                         help='USE WITH CAUTION. Deletes the original file after successfully trimming it.')
     args = parser.parse_args()
 
-    # Normalize the whitelist in a Python list()
-    if args.whitelist == default_whitelist:
-        custom_whitelist = args.whitelist
-
-    else:
-        custom_whitelist = args.whitelist.split(',')
-
-    p = pyfftrim(name=args.input, depth=args.depth, postfix=args.postfix, whitelist=custom_whitelist)
+    p = pyfftrim(name=args.input, depth=args.depth, postfix=args.postfix, whitelist=args.whitelist)
     p.trim(args.start, args.end, dryrun=args.dryrun, delete_original=args.delete_original)
 
     sys.exit(0)
