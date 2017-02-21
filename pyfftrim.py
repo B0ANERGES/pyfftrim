@@ -10,9 +10,12 @@ if shutil.which('ffmpeg') is None:
     print('This program requires ffmpeg to operate')
     sys.exit(1)
 
+default_whitelist = ['.ts', '.mpg']
+default_postfix = '_trimmed'
+
 
 class pyfftrim:
-    def __init__(self, name=None, depth=1, postfix='_trimmed', whitelist=None):
+    def __init__(self, name=None, depth=1, postfix=default_postfix, whitelist=None):
         """
         Instantiates the pyfftrim object. If called with the appropriate parameters, this may also populate the list
         in preparation for parsing.
@@ -32,7 +35,7 @@ class pyfftrim:
             raise RuntimeError
 
         if whitelist is None:
-            whitelist = ['.ts', '.mpg']
+            whitelist = default_whitelist
 
         self.files = list()
         self.postfix = postfix
@@ -210,13 +213,13 @@ if __name__ == '__main__':
                         help='The number of seconds to trim from the end of the video')
     parser.add_argument('-i', '--input', required=True,
                         help='The input file or directory containing the files you want to process')
-    parser.add_argument('-p', '--postfix', default='_trimmed',
+    parser.add_argument('-p', '--postfix', default=default_postfix,
                         help='The string to append to a processed file as its output name.')
     parser.add_argument('-d', '--depth', type=int, default=1,
                         help='If a directory is specified, this allows recursing through sub-directories')
     parser.add_argument('--dryrun', action='store_true',
                         help='Runs the script without actually trimming any of the videos')
-    parser.add_argument('--whitelist', nargs='?', default=['.ts', '.mpg'],
+    parser.add_argument('--whitelist', nargs='?', default=default_whitelist,
                         help='Override the whitelist of acceptable files. This is only used when adding from a'
                              'directory. In other words, it may be overridden on a case-by-case basis by manually'
                              'adding a file')
