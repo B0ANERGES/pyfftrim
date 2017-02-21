@@ -12,7 +12,7 @@ if shutil.which('ffmpeg') is None:
 
 
 class pyfftrim:
-    def __init__(self, name=None, depth=1, postfix='_trimmed'):
+    def __init__(self, name=None, depth=1, postfix='_trimmed', whitelist=None):
         """
         Instantiates the pyfftrim object. If called with the appropriate parameters, this may also populate the list
         in preparation for parsing.
@@ -31,8 +31,12 @@ class pyfftrim:
         if postfix == '':
             raise RuntimeError
 
+        if whitelist is None:
+            whitelist = ['.ts', '.mpg']
+
         self.files = list()
         self.postfix = postfix
+        self.whitelist = whitelist
 
         if os.path.isfile(name):
             self.files = [name]
@@ -42,6 +46,21 @@ class pyfftrim:
 
         else:
             raise FileNotFoundError
+
+    def _in_whitelist(self, path):
+        """
+        Checks the file extension whitelist to ensure we are only adding the files we are supposed to.
+
+        :param path: The path of the file we want to check the extension of.
+        :return: If the file is allowed by the whitelist, returns True. Otherwise False.
+        """
+        extension = os.path.splitext(path)[1]
+
+        for wl_extension in self.whitelist:
+            if extension == wl_extension:
+                return True
+
+        return False
 
     def add_dir(self, path, depth=1):
         """
@@ -60,13 +79,19 @@ class pyfftrim:
             return False
 
         for entry in os.listdir(path):
-            if os.path.isfile(entry):
-                self.files.append(entry)
+            entry_path = os.path.join(path, entry)
+
+            if os.path.isfile(entry_path):
+                if not self._in_whitelist(entry):
+                    print('%s is not in the whitelist. Skipping.' % entry)
+                    continue
+
+                self.files.append(entry_path)
 
             # We are dealing with a sub-directory.
             else:
                 if depth > 1:
-                    self.add_dir(entry, depth-1)
+                    self.add_dir(entry_path, depth-1)
 
         return True
 
@@ -117,7 +142,7 @@ class pyfftrim:
 
         return '{:02d}:{:02d}:{:02d}'.format(h, m, s)
 
-    def trim(self, start, end):
+    def trim(self, start, end, dryrun=False):
         """
         Processes all entries in the list of entries and normalizes the user's desired start and end parameters.
 
@@ -142,6 +167,10 @@ class pyfftrim:
                 return False
 
             end_time = self._format_secs(new_duration)
+
+            # If we specify the dry run parameter, do not actually perform the trim
+            if dryrun is True:
+                continue
 
             status = self._trim_file(entry, start_time, end_time)
             if status == 0:
@@ -185,9 +214,15 @@ if __name__ == '__main__':
                         help='The string to append to a processed file as its output name.')
     parser.add_argument('-d', '--depth', type=int, default=1,
                         help='If a directory is specified, this allows recursing through sub-directories')
+    parser.add_argument('--dryrun', action='store_true',
+                        help='Runs the script without actually trimming any of the videos')
+    parser.add_argument('--whitelist', nargs='?', default=['.ts', '.mpg'],
+                        help='Override the whitelist of acceptable files. This is only used when adding from a'
+                             'directory. In other words, it may be overridden on a case-by-case basis by manually'
+                             'adding a file')
     args = parser.parse_args()
 
     p = pyfftrim(name=args.input, depth=args.depth, postfix=args.postfix)
-    p.trim(args.start, args.end)
+    p.trim(args.start, args.end, dryrun=args.dryrun)
 
     sys.exit(0)
