@@ -19,6 +19,7 @@ class pyfftrim:
 
         :param name: The file or directory we want to add to the list of items to parse.
         :param depth: If name is a directory, this specifies how many sub-directories we are willing to traverse.
+        :param postfix: This is appended to the original name to form the new file name.
         """
         # Sanity checks
         if name is None:
