@@ -20,11 +20,18 @@ class pyfftrim:
         :param name: The file or directory we want to add to the list of items to parse.
         :param depth: If name is a directory, this specifies how many sub-directories we are willing to traverse.
         """
-        self.files = list()
-        self.postfix = postfix
-
+        # Sanity checks
         if name is None:
             return
+
+        if depth < 1:
+            raise RuntimeError
+
+        if postfix == '':
+            raise RuntimeError
+
+        self.files = list()
+        self.postfix = postfix
 
         if os.path.isfile(name):
             self.files = [name]
@@ -42,16 +49,25 @@ class pyfftrim:
         :param path: The path of the directory that we wish to add.
         :param depth: The number of directories deep that we traverse. By default, we don't traverse into any
                       sub-directories. Use caution when specifying this parameter.
-        :return: This method does not return a value.
+        :return: Returns True if the directory was added or false if it were not.
         """
+        # Sanity checks
+        if depth < 1:
+            return False
+
+        if not os.path.isdir(path):
+            return False
+
         for entry in os.listdir(path):
             if os.path.isfile(entry):
                 self.files.append(entry)
 
-            # We are dealing with the directory.
+            # We are dealing with a sub-directory.
             else:
                 if depth > 1:
                     self.add_dir(entry, depth-1)
+
+        return True
 
     def add_file(self, name):
         """
@@ -60,11 +76,11 @@ class pyfftrim:
         :param name: The name of the file to be added to the list.
         :return: Returns True if the file was successfully added or false if it failed.
         """
-        if os.path.isfile(name):
-            self.files.append(name)
-            return True
+        if not os.path.isfile(name):
+            return False
 
-        return False
+        self.files.append(name)
+        return True
 
     @staticmethod
     def _get_duration(path):
