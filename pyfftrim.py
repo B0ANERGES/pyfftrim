@@ -145,7 +145,7 @@ class pyfftrim:
 
         return '{:02d}:{:02d}:{:02d}'.format(h, m, s)
 
-    def trim(self, start, end, dryrun=False):
+    def trim(self, start, end, dryrun=False, delete_original=False):
         """
         Processes all entries in the list of entries and normalizes the user's desired start and end parameters.
 
@@ -176,11 +176,14 @@ class pyfftrim:
                 continue
 
             status = self._trim_file(entry, start_time, end_time)
-            if status == 0:
+            if status != 0:
+                error_flag = True
+                print('FAILED! Error %d' % status)
                 continue
 
-            error_flag = True
-            print('FAILED! Error %d' % status)
+            # If we are supposed to delete the original file, do that only on success
+            if delete_original:
+                os.remove(entry)
 
         return not error_flag
 
@@ -223,9 +226,11 @@ if __name__ == '__main__':
                         help='Override the whitelist of acceptable files. This is only used when adding from a'
                              'directory. In other words, it may be overridden on a case-by-case basis by manually'
                              'adding a file')
+    parser.add_argument('--delete-original', action='store_true',
+                        help='USE WITH CAUTION. Deletes the original file after successfully trimming it.')
     args = parser.parse_args()
 
     p = pyfftrim(name=args.input, depth=args.depth, postfix=args.postfix)
-    p.trim(args.start, args.end, dryrun=args.dryrun)
+    p.trim(args.start, args.end, dryrun=args.dryrun, delete_original=args.delete_original)
 
     sys.exit(0)
