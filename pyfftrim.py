@@ -112,7 +112,7 @@ class pyfftrim:
         error_flag = False
 
         for entry in self.files:
-            print('Processing %s ... ' % entry, end='')
+            print('Processing %s' % entry)
 
             # Correctly transform the user's desired parameters into a format FFMPEG can accept.
             start_time = self._format_secs(start)
@@ -121,7 +121,6 @@ class pyfftrim:
 
             status = self._trim_file(entry, start_time, end_time)
             if status == 0:
-                print('Success')
                 continue
 
             error_flag = True
@@ -156,15 +155,15 @@ if __name__ == '__main__':
                         help='The number of seconds to trim from the start of the video')
     parser.add_argument('-e', '--end', type=int, required=True,
                         help='The number of seconds to trim from the end of the video')
-    parser.add_argument('-i', '--input', type=str(), required=True,
+    parser.add_argument('-i', '--input', required=True,
                         help='The input file or directory containing the files you want to process')
-    parser.add_argument('-p', '--postfix', type=str(), default='_trimmed',
+    parser.add_argument('-p', '--postfix', default='_trimmed',
                         help='The string to append to a processed file as its output name.')
     parser.add_argument('-d', '--depth', type=int, default=1,
                         help='If a directory is specified, this allows recursing through sub-directories')
     args = parser.parse_args()
 
-    p = pyfftrim(name=None, depth=args.depth, postfix=args.postfix)
+    p = pyfftrim(name=args.input, depth=args.depth, postfix=args.postfix)
     p.trim(args.start, args.end)
 
     sys.exit(0)
